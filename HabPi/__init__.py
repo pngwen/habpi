@@ -39,5 +39,5 @@ def join_all():
     for t in interface_threads:
         t.join()
 
-    for t in experiment_thread:
+    for t in experiment_threads:
         t.join()

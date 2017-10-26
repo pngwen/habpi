@@ -24,21 +24,14 @@ from threading import Thread
 sys.path.append(directories['root'])
 sys.path.append(directories['root']+'/experiments')
 
-def runExperiment(fname):
-    fname = fname.split('.')[0]
-    __import__(fname)
-
-
 def run():
     global sense, experiment_threads, directories, Thread
     while not start[0]:
         time.sleep(0.01)
 
-    sense.show_letter('S', [0,0,0], [255,0,0])
     for script in glob(directories['root']+"/experiments/*.py"):
-        script = script.split('/')[-1]
         print script
-        experiment_threads.append(Thread(target=runExperiment, args=(script,)))
+        experiment_threads.append(Thread(target=execfile, args=(script,globals())))
     time.sleep(1)
 
     #set up the data directory
@@ -47,7 +40,11 @@ def run():
     directories['dataDir'] = dataDir
 
     for t in experiment_threads:
+    	sense.show_letter('S', [0,0,0], [255,0,0])
         t.start()
+	time.sleep(0.5)
+	sense.clear()
+	time.sleep(1)
     sense.show_letter('R', [0,0,0], [0,255,0])
     time.sleep(2)
     sense.clear()

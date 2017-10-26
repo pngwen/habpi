@@ -19,10 +19,9 @@ import os
 import sys
 import HabPi
 
-#change to the data directory and make an images directory
+#create the image directory
 imgDir = HabPi.directories['dataDir'] + "/pictures"
 os.mkdir(imgDir)
-os.chdir(imgDir)
 
 #get the camera, set for max resolution
 camera = picamera.PiCamera()
@@ -33,5 +32,5 @@ camera.rotation=180
 
 while True:
   imgname="%d.jpg"%(int(time.time()))
-  camera.capture(imgname)
+  camera.capture(imgDir+"/"+imgname)
   time.sleep(1)

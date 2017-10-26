@@ -22,8 +22,8 @@ import HabPi
 #get the sense hat
 sense = HabPi.sense
 
-#change to the data directory
-os.chdir(HabPi.directories['dataDir'])
+#get the directory
+dataDir=HabPi.directories['dataDir']
 
 #some functions to help read from the sensors 
 def read_temp_raw(device):
@@ -65,7 +65,7 @@ for d in devices:
   snames.append(d[-4:])
 
 #create the header
-fname = 'temperatures.csv'
+fname = dataDir+'/temperatures.csv'
 file = open(fname, 'w')
 file.write("Time, HTemp, PTemp," + ', '.join(snames))
 file.write("\n")

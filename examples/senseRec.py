@@ -17,8 +17,8 @@ import os
 import sys
 import HabPi
 
-#change to the data directory
-os.chdir(HabPi.directories['dataDir'])
+#compute the directory
+dataDir=HabPi.directories['dataDir']
 
 #run sense_rec 
-os.system("sense_rec sensehat.dat")
+os.system("sense_rec %s/sensehat.dat"%(dataDir,))

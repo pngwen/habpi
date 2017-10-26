@@ -19,10 +19,9 @@ import os
 import sys
 import HabPi
 
-#change to the data directory and make an images directory
+#create the directory
 vidDir = HabPi.directories['dataDir'] + "/video"
 os.mkdir(vidDir)
-os.chdir(vidDir)
 
 #get the camera, set for max resolution
 camera = picamera.PiCamera()
@@ -32,11 +31,11 @@ camera.resolution = (1280, 720)
 camera.rotation = 180
 
 #start the first recording
-vidname="%d.h264"%(int(time.time()))
+vidname="%s/%d.h264"%(vidDir, int(time.time()))
 camera.start_recording(vidname, sps_timing=True)
 
 while True:
   #record for 10 minutes then switch the file
   camera.wait_recording(600)
-  vidname="%d.h264"%(int(time.time()))
+  vidname="%s/%d.h264"%(vidDir, int(time.time()))
   camera.split_recording(vidname, sps_timing=True)

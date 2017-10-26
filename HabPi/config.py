@@ -31,4 +31,4 @@ dhcpEnd = '172.24.1.55'
 port=8080
 
 #Sense HAT Setup
-senseEmu = True   #True for emulated, False for hardware
+senseEmu = False   #True for emulated, False for hardware
