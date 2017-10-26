@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+# HabPi - A Simple Framework for High Altitude Sensing
+#   Copyright (C) 2017 Robert Lowe <robert.lowe@maryvillecollege.edu>
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import sys
+import os 
+
+#get the root directory and put it in our pythonpath
+root=os.path.dirname(os.path.realpath(__file__)).split('/')
+root='/'.join(root[:-1])
+sys.path.append(root)
+script = root + '/scripts'
+
+import HabPi
+
+#start the networking
+if HabPi.config.accessPoint:
+    args = (root+'/scripts', HabPi.config.addr, HabPi.config.dhcpStart, HabPi.config.dhcpEnd, HabPi.config.netmask, HabPi.config.network, HabPi.config.broadcast, HabPi.config.ssid, HabPi.config.wpa)
+    os.system('sudo %s/accessPoint %s %s %s %s %s %s %s %s'%args)
+else:
+    os.system('sudo %s/normalWifi'%(script,))
+
+#wait for everything to exit
+HabPi.join_all()

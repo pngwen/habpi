@@ -1,0 +1,172 @@
+#!/bin/sh
+# HabPi - A Simple Framework for High Altitude Sensing
+#   Copyright (C) 2017 Robert Lowe <robert.lowe@maryvillecollege.edu>
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# This script is based on instructions found at
+# https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/
+# It will configure the raspberry pi computer to act as an access point.
+
+addr=$1
+dhcpStart=$2
+dhcpEnd=$3
+netmask=$4
+network=$5
+broadcast=$6
+ssid=$7
+wpa=$8
+
+#dnsmasq
+cat << EOF > /etc/dnsmasq.conf
+interface=wlan0      # Use interface wlan0  
+listen-address=$addr # Explicitly specify the address to listen on  
+bind-interfaces      # Bind to the interface to make sure we aren't sending things elsewhere  
+server=8.8.8.8       # Forward DNS requests to Google DNS  
+domain-needed        # Don't forward short names  
+bogus-priv           # Never forward addresses in the non-routed address spaces.  
+dhcp-range=$dhcpStart,$dhcpEnd,12h 
+EOF
+
+
+#dhcpcd.conf
+cat << EOF > /etc/dhcpcd.conf
+# A sample configuration for dhcpcd.
+# See dhcpcd.conf(5) for details.
+
+# Allow users of this group to interact with dhcpcd via the control socket.
+#controlgroup wheel
+
+# Inform the DHCP server of our hostname for DDNS.
+hostname
+
+# Use the hardware address of the interface for the Client ID.
+clientid
+# or
+# Use the same DUID + IAID as set in DHCPv6 for DHCPv4 ClientID as per RFC4361.
+# Some non-RFC compliant DHCP servers do not reply with this set.
+# In this case, comment out duid and enable clientid above.
+#duid
+
+# Persist interface configuration when dhcpcd exits.
+persistent
+
+# Rapid commit support.
+# Safe to enable by default because it requires the equivalent option set
+# on the server to actually work.
+option rapid_commit
+
+# A list of options to request from the DHCP server.
+option domain_name_servers, domain_name, domain_search, host_name
+option classless_static_routes
+# Most distributions have NTP support.
+option ntp_servers
+# Respect the network MTU. This is applied to DHCP routes.
+option interface_mtu
+
+# A ServerID is required by RFC2131.
+require dhcp_server_identifier
+
+# Generate Stable Private IPv6 Addresses instead of hardware based ones
+slaac private
+
+# Example static IP configuration:
+#interface eth0
+#static ip_address=192.168.0.10/24
+#static ip6_address=fd51:42f8:caae:d92e::ff/64
+#static routers=192.168.0.1
+#static domain_name_servers=192.168.0.1 8.8.8.8 fd51:42f8:caae:d92e::1
+
+# It is possible to fall back to a static IP if DHCP fails:
+# define static profile
+#profile static_eth0
+#static ip_address=192.168.1.23/24
+#static routers=192.168.1.1
+#static domain_name_servers=192.168.1.1
+
+# fallback to static profile on eth0
+#interface eth0
+#fallback static_eth0
+
+denyinterfaces wlan0 
+EOF
+
+
+#wlan0
+cat << EOF > /etc/network/interfaces.d/wlan0
+allow-hotplug wlan0  
+iface wlan0 inet static  
+    address $addr
+    netmask $netmask
+    network $network
+    broadcast $broadcast
+EOF
+
+
+#hostapd
+cat << EOF > /etc/hostapd/hostapd.conf
+# This is the name of the WiFi interface we configured above
+interface=wlan0
+
+# Use the nl80211 driver with the brcmfmac driver
+driver=nl80211
+
+# This is the name of the network
+ssid=$ssid
+
+# Use the 2.4GHz band
+hw_mode=g
+
+# Use channel 6
+channel=6
+
+# Enable 802.11n
+ieee80211n=1
+
+# Enable WMM
+wmm_enabled=1
+
+# Enable 40MHz channels with 20ns guard interval
+ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40]
+
+# Accept all MAC addresses
+macaddr_acl=0
+
+# Use WPA authentication
+auth_algs=1
+
+# Require clients to know the network name
+ignore_broadcast_ssid=0
+
+# Use WPA2
+wpa=2
+
+# Use a pre-shared key
+wpa_key_mgmt=WPA-PSK
+
+# The network passphrase
+wpa_passphrase=$wpa
+
+# Use AES, instead of TKIP
+rsn_pairwise=CCMP
+EOF
+
+#start hostapd
+ifdown wlan0
+systemctl restart dhcpcd
+systemctl restart networking
+ifup wlan0
+systemctl restart dnsmasq
+/usr/sbin/hostapd -B /etc/hostapd/hostapd.conf
