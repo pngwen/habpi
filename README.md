@@ -9,8 +9,7 @@ balloons.  The recommended hardware configuration is
 Construction details will follow in a later version of this file.  For now, 
 see my presentation at AHAC 2017 to get the gist of how this is assembled.
 
-An academic paper will follow, which will be cited here.  For now, if you have
-any questions, feel free to contact me and I will be glad to help!
+For more documentation with payload assembly, see http://cs.maryvillecollege.edu/habpi
 
 Robert Lowe
 robert.lowe@maryvillecollege.edu
